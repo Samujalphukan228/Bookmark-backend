@@ -22,7 +22,7 @@ export default function DashboardLayout({
             {/* Main content - offset by sidebar width on desktop */}
             <div className="lg:ml-64">
                 {/* Navbar */}
-                <Navbar onMenuClick={() => setSidebarOpen(true)} />
+                <Navbar onMenuClick={() => setSidebarOpen(true)} /> 
 
                 {/* Page content */}
                 <main>
