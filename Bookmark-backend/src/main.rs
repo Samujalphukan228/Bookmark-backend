@@ -48,6 +48,8 @@ mod middleware {
 
 
 use axum::{Router, routing::get, middleware as axum_middleware};
+use axum::http::{HeaderValue, Method, header};
+use tower_http::cors::CorsLayer;
 
 use config::env::EnvConfig;
 use db::mongo::connect;
@@ -74,6 +76,12 @@ async fn main() {
         jwt_secret: config.jwt_secret,
     };
 
+    let cors = CorsLayer::new()
+        .allow_origin("http://localhost:3001".parse::<HeaderValue>().unwrap())
+        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+        .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION])
+        .allow_credentials(true);
+
     // Protected routes
     let protected = Router::new()
         .route("/me", get(me))
@@ -87,6 +95,7 @@ async fn main() {
     let app = Router::new()
         .nest("/api/auth", auth_routes())
         .nest("/api", protected)
+        .layer(cors)
         .with_state(state);
 
     let listener = tokio::net::TcpListener
