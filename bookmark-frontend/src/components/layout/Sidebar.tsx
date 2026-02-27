@@ -112,6 +112,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     </div>
                 </nav>
 
+
+
                 {/* Logout */}
                 <div className="px-3 py-4 border-t border-neutral-800">
                     <button
