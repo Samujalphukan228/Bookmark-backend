@@ -25,6 +25,8 @@ mod handlers {
     pub mod bookmark;
     pub mod collection;
     pub mod tag;
+    pub mod search;
+    pub mod import;
 }
 
 mod routes {
@@ -32,6 +34,8 @@ mod routes {
     pub mod bookmark;
     pub mod collection;
     pub mod tag;
+    pub mod search;
+    pub mod import;
 }
 
 mod utils {
@@ -52,6 +56,8 @@ use routes::auth::auth_routes;
 use routes::bookmark::bookmark_routes;
 use routes::collection::collection_routes;
 use routes::tag::tag_routes;
+use routes::search::search_routes;
+use routes::import::import_routes;
 use middleware::auth::auth_middleware;
 use handlers::auth::me;
 
@@ -74,6 +80,8 @@ async fn main() {
         .nest("/bookmarks", bookmark_routes())
         .nest("/collections", collection_routes())
         .nest("/tags", tag_routes())
+        .nest("/search", search_routes())
+        .nest("/import", import_routes())
         .layer(axum_middleware::from_fn_with_state(state.clone(), auth_middleware));
 
     let app = Router::new()
