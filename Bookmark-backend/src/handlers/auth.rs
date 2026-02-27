@@ -4,7 +4,7 @@ use axum::{
     Json,
     Extension,
 };
-use axum_extra::extract::cookie::{CookieJar, Cookie};
+use axum_extra::extract::cookie::{CookieJar, Cookie, SameSite};
 use mongodb::bson::doc;
 use bcrypt::{hash, verify, DEFAULT_COST};
 use chrono::Utc;
@@ -98,6 +98,8 @@ pub async fn login(
     let cookie = Cookie::build(("token", token))
         .path("/")
         .http_only(true)
+        .same_site(SameSite::None)
+        .secure(true)
         .build();
 
     let response = UserResponse {
@@ -114,7 +116,14 @@ pub async fn logout(
     jar: CookieJar,
 ) -> CookieJar {
 
-    jar.remove(Cookie::from("token"))
+    let cookie = Cookie::build(("token", ""))
+        .path("/")
+        .http_only(true)
+        .same_site(SameSite::None)
+        .secure(true)
+        .build();
+
+    jar.remove(cookie)
 }
 
 

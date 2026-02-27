@@ -4,6 +4,12 @@ import { useState } from "react"
 import { Bookmark } from "@/types"
 import { formatDate, getDomain } from "@/lib/utils"
 import { bookmarkApi } from "@/lib/api"
+import { 
+    HiOutlineBookmark, 
+    HiOutlinePencil, 
+    HiOutlineTrash,
+    HiOutlineExternalLink 
+} from "react-icons/hi"
 
 interface BookmarkCardProps {
     bookmark: Bookmark
@@ -33,25 +39,26 @@ export default function BookmarkCard({
     }
 
     return (
-        <div className="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300 transition-colors group">
+        <div className="border border-neutral-800 rounded p-4 hover:border-neutral-700 hover:bg-neutral-900/50 transition-colors group">
 
             {/* Header */}
-            <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm flex-shrink-0">
-                        🔖
+            <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-8 h-8 bg-neutral-900 border border-neutral-800 rounded flex items-center justify-center flex-shrink-0 group-hover:border-neutral-700">
+                        <HiOutlineBookmark className="w-4 h-4 text-neutral-500" />
                     </div>
-                    <div className="min-w-0">
-                        <h3 className="text-sm font-medium text-gray-900 truncate">
+                    <div className="min-w-0 pt-0.5">
+                        <h3 className="text-sm font-medium text-white truncate">
                             {bookmark.title}
                         </h3>
                         <a
                             href={bookmark.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-blue-500 hover:underline truncate block"
+                            className="inline-flex items-center gap-1 text-xs text-neutral-500 hover:text-white transition-colors mt-0.5"
                         >
-                            {getDomain(bookmark.url)}
+                            <span className="truncate">{getDomain(bookmark.url)}</span>
+                            <HiOutlineExternalLink className="w-3 h-3 flex-shrink-0" />
                         </a>
                     </div>
                 </div>
@@ -60,34 +67,34 @@ export default function BookmarkCard({
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                     <button
                         onClick={() => onEdit(bookmark)}
-                        className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+                        className="p-1.5 rounded hover:bg-neutral-800 text-neutral-500 hover:text-white transition-colors touch-manipulation"
                     >
-                        ✏️
+                        <HiOutlinePencil className="w-4 h-4" />
                     </button>
                     <button
                         onClick={handleDelete}
                         disabled={deleting}
-                        className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 disabled:opacity-50"
+                        className="p-1.5 rounded hover:bg-red-950/50 text-neutral-500 hover:text-red-400 disabled:opacity-50 transition-colors touch-manipulation"
                     >
-                        🗑️
+                        <HiOutlineTrash className="w-4 h-4" />
                     </button>
                 </div>
             </div>
 
             {/* Description */}
             {bookmark.description && (
-                <p className="text-xs text-gray-500 mt-2 line-clamp-2">
+                <p className="text-xs text-neutral-500 mt-3 line-clamp-2">
                     {bookmark.description}
                 </p>
             )}
 
             {/* Tags */}
             {bookmark.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-3">
+                <div className="flex flex-wrap gap-1.5 mt-3">
                     {bookmark.tags.map((tag) => (
                         <span
                             key={tag}
-                            className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs"
+                            className="px-2 py-0.5 border border-neutral-800 text-neutral-500 rounded text-xs"
                         >
                             #{tag}
                         </span>
@@ -96,7 +103,7 @@ export default function BookmarkCard({
             )}
 
             {/* Footer */}
-            <div className="text-xs text-gray-400 mt-3">
+            <div className="text-xs text-neutral-600 mt-3">
                 {formatDate(bookmark.created_at)}
             </div>
 

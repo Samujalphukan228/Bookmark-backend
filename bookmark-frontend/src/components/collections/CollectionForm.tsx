@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Collection, CreateCollectionInput } from "@/types"
 import { collectionApi } from "@/lib/api"
+import { HiOutlineX, HiOutlineExclamation } from "react-icons/hi"
 
 interface CollectionFormProps {
     collection?: Collection
@@ -47,28 +48,35 @@ export default function CollectionForm({
     }
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl w-full max-w-md shadow-xl">
+        <div className="fixed inset-0 bg-black/80 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+            <div className="bg-black border border-neutral-800 w-full sm:max-w-md sm:rounded-lg">
 
                 {/* Header */}
-                <div className="p-6 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-900">
+                <div className="flex items-center justify-between p-4 border-b border-neutral-800">
+                    <h2 className="text-base font-medium text-white">
                         {collection ? "Edit Collection" : "New Collection"}
                     </h2>
+                    <button
+                        onClick={onCancel}
+                        className="p-1 text-neutral-500 hover:text-white transition-colors touch-manipulation"
+                    >
+                        <HiOutlineX className="w-5 h-5" />
+                    </button>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="p-4 space-y-4">
 
                     {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                        <div className="flex items-center gap-3 px-4 py-3 border border-red-900/50 bg-red-950/20 rounded text-sm text-red-400">
+                            <HiOutlineExclamation className="w-5 h-5 flex-shrink-0" />
                             {error}
                         </div>
                     )}
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Name *
+                        <label className="block text-sm text-neutral-400 mb-2">
+                            Name
                         </label>
                         <input
                             type="text"
@@ -76,38 +84,47 @@ export default function CollectionForm({
                             onChange={(e) => setName(e.target.value)}
                             placeholder="My Collection"
                             required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            autoFocus
+                            className="w-full px-3 py-2.5 bg-black border border-neutral-800 rounded text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-600 transition-colors"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm text-neutral-400 mb-2">
                             Description
+                            <span className="text-neutral-600 ml-1">(optional)</span>
                         </label>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Optional description"
+                            placeholder="What's this collection for?"
                             rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
+                            className="w-full px-3 py-2.5 bg-black border border-neutral-800 rounded text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-600 transition-colors resize-none"
                         />
                     </div>
 
                     {/* Buttons */}
-                    <div className="flex gap-3 pt-2">
+                    <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2">
                         <button
                             type="button"
                             onClick={onCancel}
-                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="w-full sm:flex-1 px-4 py-2.5 border border-neutral-800 rounded text-sm font-medium text-neutral-400 hover:text-white hover:border-neutral-700 transition-colors touch-manipulation"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            disabled={loading}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                            disabled={loading || !name.trim()}
+                            className="w-full sm:flex-1 px-4 py-2.5 bg-white text-black rounded text-sm font-medium hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation"
                         >
-                            {loading ? "Saving..." : collection ? "Update" : "Create"}
+                            {loading ? (
+                                <span className="inline-flex items-center gap-2">
+                                    <span className="w-4 h-4 border-2 border-neutral-400 border-t-black rounded-full animate-spin" />
+                                    Saving...
+                                </span>
+                            ) : (
+                                collection ? "Save changes" : "Create collection"
+                            )}
                         </button>
                     </div>
 

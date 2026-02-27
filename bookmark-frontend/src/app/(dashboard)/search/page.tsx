@@ -1,10 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Bookmark, Tag } from "@/types"
 import { searchApi, tagApi } from "@/lib/api"
 import { getDomain, formatDate } from "@/lib/utils"
-import { useEffect } from "react"
+import { 
+    HiOutlineSearch, 
+    HiOutlineBookmark,
+    HiOutlineExternalLink
+} from "react-icons/hi"
 
 export default function SearchPage() {
 
@@ -55,29 +59,34 @@ export default function SearchPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
 
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">Search</h1>
-                <p className="text-gray-500 mt-1">
-                    Search your bookmarks
+                <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
+                    Search
+                </h1>
+                <p className="text-sm text-neutral-400 mt-1">
+                    Search your bookmarks by title, URL, or tags
                 </p>
             </div>
 
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="flex gap-3">
-                <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search bookmarks..."
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                />
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                    <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                    <input
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Search bookmarks..."
+                        className="w-full pl-10 pr-4 py-2.5 bg-black border border-neutral-800 rounded text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-700 transition-colors"
+                    />
+                </div>
                 <button
                     type="submit"
                     disabled={loading || !query.trim()}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    className="px-6 py-2.5 bg-white text-black text-sm font-medium rounded hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation"
                 >
                     {loading ? "Searching..." : "Search"}
                 </button>
@@ -85,26 +94,26 @@ export default function SearchPage() {
 
             {/* Tags */}
             {tags.length > 0 && (
-                <div className="bg-white rounded-xl border border-gray-200 p-5">
-                    <h2 className="text-sm font-medium text-gray-700 mb-3">
-                        Browse by Tag
+                <div>
+                    <h2 className="text-sm font-medium text-white mb-3">
+                        Browse by tag
                     </h2>
                     <div className="flex flex-wrap gap-2">
                         {tags.map((tag) => (
                             <button
                                 key={tag.name}
                                 onClick={() => handleTagClick(tag.name)}
-                                className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                                className={`px-3 py-1.5 rounded text-sm transition-colors touch-manipulation ${
                                     selectedTag === tag.name
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600"
+                                        ? "bg-white text-black"
+                                        : "border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700"
                                 }`}
                             >
                                 #{tag.name}
-                                <span className={`ml-1 text-xs ${
+                                <span className={`ml-1.5 ${
                                     selectedTag === tag.name
-                                        ? "text-blue-200"
-                                        : "text-gray-400"
+                                        ? "text-neutral-600"
+                                        : "text-neutral-600"
                                 }`}>
                                     {tag.count}
                                 </span>
@@ -116,19 +125,19 @@ export default function SearchPage() {
 
             {/* Results */}
             {searched && (
-                <div className="space-y-3">
+                <div className="space-y-4">
 
                     {/* Results Header */}
                     <div className="flex items-center justify-between">
-                        <h2 className="text-sm font-medium text-gray-700">
+                        <h2 className="text-sm font-medium text-white">
                             {loading ? "Searching..." : (
                                 selectedTag
-                                    ? `Bookmarks tagged #${selectedTag}`
+                                    ? `Tagged with #${selectedTag}`
                                     : `Results for "${query}"`
                             )}
                         </h2>
                         {!loading && (
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-neutral-500">
                                 {results.length} found
                             </span>
                         )}
@@ -136,62 +145,65 @@ export default function SearchPage() {
 
                     {/* Loading */}
                     {loading && (
-                        <div className="text-center py-12 text-gray-400">
-                            Searching...
+                        <div className="py-12 flex justify-center">
+                            <div className="w-5 h-5 border-2 border-neutral-800 border-t-white rounded-full animate-spin" />
                         </div>
                     )}
 
                     {/* Results List */}
                     {!loading && results.length > 0 && (
-                        <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+                        <div className="border border-neutral-800 rounded divide-y divide-neutral-800">
                             {results.map((bookmark) => (
                                 <div
                                     key={bookmark.id}
-                                    className="p-4 hover:bg-gray-50 transition-colors"
+                                    className="p-4 hover:bg-neutral-900 transition-colors"
                                 >
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm flex-shrink-0">
-                                                🔖
-                                            </div>
-                                            <div className="min-w-0">
-                                                <h3 className="text-sm font-medium text-gray-900 truncate">
-                                                    {bookmark.title}
-                                                </h3>
-                                                <a
-                                                    href={bookmark.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-xs text-blue-500 hover:underline"
-                                                >
-                                                    {getDomain(bookmark.url)}
-                                                </a>
-                                                {bookmark.description && (
-                                                    <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-                                                        {bookmark.description}
-                                                    </p>
-                                                )}
-                                            </div>
+                                    <div className="flex items-start gap-3 sm:gap-4">
+                                        <div className="w-8 h-8 sm:w-9 sm:h-9 bg-neutral-900 border border-neutral-800 rounded flex items-center justify-center flex-shrink-0">
+                                            <HiOutlineBookmark className="w-4 h-4 text-neutral-500" />
                                         </div>
-                                        <div className="text-xs text-gray-400 flex-shrink-0">
-                                            {formatDate(bookmark.created_at)}
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="min-w-0">
+                                                    <h3 className="text-sm text-white truncate">
+                                                        {bookmark.title}
+                                                    </h3>
+                                                    <a
+                                                        href={bookmark.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 text-xs text-neutral-500 hover:text-white transition-colors mt-0.5"
+                                                    >
+                                                        {getDomain(bookmark.url)}
+                                                        <HiOutlineExternalLink className="w-3 h-3" />
+                                                    </a>
+                                                    {bookmark.description && (
+                                                        <p className="text-xs text-neutral-500 mt-1.5 line-clamp-1">
+                                                            {bookmark.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <span className="text-xs text-neutral-600 flex-shrink-0 hidden sm:block">
+                                                    {formatDate(bookmark.created_at)}
+                                                </span>
+                                            </div>
+
+                                            {/* Tags */}
+                                            {bookmark.tags.length > 0 && (
+                                                <div className="flex flex-wrap gap-1.5 mt-2">
+                                                    {bookmark.tags.map((tag) => (
+                                                        <button
+                                                            key={tag}
+                                                            onClick={() => handleTagClick(tag)}
+                                                            className="px-2 py-0.5 border border-neutral-800 hover:border-neutral-700 text-neutral-500 hover:text-white rounded text-xs transition-colors touch-manipulation"
+                                                        >
+                                                            #{tag}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-
-                                    {/* Tags */}
-                                    {bookmark.tags.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 mt-2 ml-11">
-                                            {bookmark.tags.map((tag) => (
-                                                <button
-                                                    key={tag}
-                                                    onClick={() => handleTagClick(tag)}
-                                                    className="px-2 py-0.5 bg-gray-100 hover:bg-blue-100 hover:text-blue-600 text-gray-600 rounded-full text-xs transition-colors"
-                                                >
-                                                    #{tag}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
                                 </div>
                             ))}
                         </div>
@@ -199,11 +211,11 @@ export default function SearchPage() {
 
                     {/* No Results */}
                     {!loading && results.length === 0 && (
-                        <div className="text-center py-16 text-gray-400">
-                            <p className="text-4xl mb-4">🔍</p>
-                            <p className="font-medium">No results found</p>
-                            <p className="text-sm mt-1">
-                                Try a different search term
+                        <div className="py-16 text-center border border-dashed border-neutral-800 rounded">
+                            <HiOutlineSearch className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
+                            <p className="text-sm text-white mb-1">No results found</p>
+                            <p className="text-xs text-neutral-500">
+                                Try a different search term or tag
                             </p>
                         </div>
                     )}
@@ -211,16 +223,13 @@ export default function SearchPage() {
                 </div>
             )}
 
-            {/* Empty State */}
+            {/* Initial State */}
             {!searched && (
-                <div className="text-center py-16 text-gray-400">
-                    <p className="text-4xl mb-4">🔍</p>
-                    <p className="font-medium">Search your bookmarks</p>
-                    <p className="text-sm mt-1">
-                        Search by title, description or URL
-                    </p>
-                    <p className="text-sm mt-1">
-                        Or click a tag above to filter
+                <div className="py-16 sm:py-24 text-center border border-dashed border-neutral-800 rounded">
+                    <HiOutlineSearch className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
+                    <p className="text-sm text-white mb-1">Search your bookmarks</p>
+                    <p className="text-xs text-neutral-500">
+                        Enter a search term or select a tag above
                     </p>
                 </div>
             )}
