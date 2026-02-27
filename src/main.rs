@@ -14,16 +14,28 @@ mod errors {
     pub mod app_error;
 }
 
+mod models {
+    pub mod user;
+}
+
+mod handlers {
+    pub mod auth;
+}
+
+mod routes {
+    pub mod auth;
+}
+
 
 use axum::Router;
 
 use config::env::EnvConfig;
 use db::mongo::connect;
 use state::app_state::AppState;
+use routes::auth::auth_routes;
 
 
 #[tokio::main]
-
 async fn main() {
 
     let config = EnvConfig::init();
@@ -35,8 +47,8 @@ async fn main() {
     };
 
     let app = Router::new()
+        .nest("/api/auth", auth_routes())
         .with_state(state);
-
 
     let listener = tokio::net::TcpListener
         ::bind(format!("0.0.0.0:{}", config.port))
