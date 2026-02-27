@@ -1,22 +1,31 @@
 "use client"
 
 import { useState } from "react"
-import Navbar from "../../components/layout/Navbar"
 import Sidebar from "../../components/layout/Sidebar"
+import Navbar from "../../components/layout/Sidebar"
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+    children,
+}: {
+    children: React.ReactNode
+}) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
 
     return (
-        <div className="min-h-screen bg-[#FAF9F7] flex">
+        <div className="min-h-screen bg-black">
+            {/* Sidebar */}
             <Sidebar 
                 isOpen={sidebarOpen} 
                 onClose={() => setSidebarOpen(false)} 
             />
 
-            <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
+            {/* Main content - offset by sidebar width on desktop */}
+            <div className="lg:ml-64">
+                {/* Navbar */}
                 <Navbar onMenuClick={() => setSidebarOpen(true)} />
-                <main className="flex-1 p-4 lg:p-8">
+
+                {/* Page content */}
+                <main>
                     {children}
                 </main>
             </div>

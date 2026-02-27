@@ -56,13 +56,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
             {/* Sidebar */}
             <aside className={`
-                fixed lg:static inset-y-0 left-0 z-50
-                w-[280px] sm:w-64 h-screen bg-black
+                fixed top-0 left-0 bottom-0 z-50
+                w-[280px] sm:w-64 bg-black
                 flex flex-col
                 transform transition-transform duration-200 ease-out
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
                 lg:translate-x-0
                 border-r border-neutral-800
+                overflow-hidden
             `}>
 
                 {/* Logo */}
@@ -83,7 +84,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 px-3 py-4 overflow-y-auto">
+                <nav className="flex-1 px-3 py-4">
                     <div className="space-y-0.5">
                         {links.map((link) => {
                             const isActive = pathname === link.href
