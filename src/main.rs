@@ -17,16 +17,21 @@ mod errors {
 mod models {
     pub mod user;
     pub mod bookmark;
+    pub mod collection;
 }
 
 mod handlers {
     pub mod auth;
     pub mod bookmark;
+    pub mod collection;
+    pub mod tag;
 }
 
 mod routes {
     pub mod auth;
     pub mod bookmark;
+    pub mod collection;
+    pub mod tag;
 }
 
 mod utils {
@@ -45,6 +50,8 @@ use db::mongo::connect;
 use state::app_state::AppState;
 use routes::auth::auth_routes;
 use routes::bookmark::bookmark_routes;
+use routes::collection::collection_routes;
+use routes::tag::tag_routes;
 use middleware::auth::auth_middleware;
 use handlers::auth::me;
 
@@ -65,6 +72,8 @@ async fn main() {
     let protected = Router::new()
         .route("/me", get(me))
         .nest("/bookmarks", bookmark_routes())
+        .nest("/collections", collection_routes())
+        .nest("/tags", tag_routes())
         .layer(axum_middleware::from_fn_with_state(state.clone(), auth_middleware));
 
     let app = Router::new()
