@@ -26,6 +26,10 @@ mod routes {
     pub mod auth;
 }
 
+mod utils {
+    pub mod jwt;
+}
+
 
 use axum::Router;
 
@@ -43,7 +47,8 @@ async fn main() {
     let database = connect(&config).await;
 
     let state = AppState {
-        db: database
+        db: database,
+        jwt_secret: config.jwt_secret,
     };
 
     let app = Router::new()

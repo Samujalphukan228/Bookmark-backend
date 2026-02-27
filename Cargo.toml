@@ -16,3 +16,4 @@ uuid = { version = "1", features = ["v4", "serde"] }
 bcrypt = "0.15"
 chrono = { version = "0.4", features = ["serde"] }
 validator = { version = "0.16", features = ["derive"] }
+jsonwebtoken = "9"
