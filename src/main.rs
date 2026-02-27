@@ -30,13 +30,19 @@ mod utils {
     pub mod jwt;
 }
 
+mod middleware {
+    pub mod auth;
+}
 
-use axum::Router;
+
+use axum::{Router, routing::get, middleware as axum_middleware};
 
 use config::env::EnvConfig;
 use db::mongo::connect;
 use state::app_state::AppState;
 use routes::auth::auth_routes;
+use middleware::auth::auth_middleware;
+use handlers::auth::me;
 
 
 #[tokio::main]
@@ -51,8 +57,13 @@ async fn main() {
         jwt_secret: config.jwt_secret,
     };
 
+    let protected = Router::new()
+        .route("/me", get(me))
+        .layer(axum_middleware::from_fn_with_state(state.clone(), auth_middleware));
+
     let app = Router::new()
         .nest("/api/auth", auth_routes())
+        .nest("/api", protected)
         .with_state(state);
 
     let listener = tokio::net::TcpListener

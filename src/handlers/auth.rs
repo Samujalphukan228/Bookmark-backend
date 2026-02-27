@@ -2,7 +2,9 @@ use axum::{
     extract::State,
     http::StatusCode,
     Json,
+    Extension,
 };
+use axum_extra::extract::cookie::{CookieJar, Cookie};
 use mongodb::bson::doc;
 use bcrypt::{hash, verify, DEFAULT_COST};
 use chrono::Utc;
@@ -14,9 +16,8 @@ use crate::models::user::{
     RegisterRequest,
     UserResponse,
     LoginRequest,
-    LoginResponse,
 };
-use crate::utils::jwt::create_token;
+use crate::utils::jwt::{create_token, Claims};
 
 
 pub async fn register(
@@ -66,8 +67,9 @@ pub async fn register(
 
 pub async fn login(
     State(state): State<AppState>,
+    jar: CookieJar,
     Json(body): Json<LoginRequest>,
-) -> Result<Json<LoginResponse>, (StatusCode, String)> {
+) -> Result<(CookieJar, Json<UserResponse>), (StatusCode, String)> {
 
     if let Err(errors) = body.validate() {
         return Err((StatusCode::BAD_REQUEST, errors.to_string()));
@@ -75,14 +77,12 @@ pub async fn login(
 
     let collection = state.db.collection::<User>("users");
 
-    // Find user
     let user = collection
         .find_one(doc! { "email": &body.email }, None)
         .await
         .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error".to_string()))?
         .ok_or((StatusCode::UNAUTHORIZED, "Invalid credentials".to_string()))?;
 
-    // Verify password
     let valid = verify(&body.password, &user.password)
         .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Error verifying password".to_string()))?;
 
@@ -90,20 +90,39 @@ pub async fn login(
         return Err((StatusCode::UNAUTHORIZED, "Invalid credentials".to_string()));
     }
 
-    // Create token
     let user_id = user.id.unwrap().to_hex();
 
     let token = create_token(&user_id, &state.jwt_secret)
         .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Failed to create token".to_string()))?;
 
-    let response = LoginResponse {
-        token,
-        user: UserResponse {
-            id: user_id,
-            email: user.email,
-            created_at: user.created_at,
-        },
+    let cookie = Cookie::build(("token", token))
+        .path("/")
+        .http_only(true)
+        .build();
+
+    let response = UserResponse {
+        id: user_id,
+        email: user.email,
+        created_at: user.created_at,
     };
 
-    Ok(Json(response))
+    Ok((jar.add(cookie), Json(response)))
+}
+
+
+pub async fn logout(
+    jar: CookieJar,
+) -> CookieJar {
+
+    jar.remove(Cookie::from("token"))
+}
+
+
+pub async fn me(
+    Extension(claims): Extension<Claims>,
+) -> Result<Json<serde_json::Value>, StatusCode> {
+
+    Ok(Json(serde_json::json!({
+        "user_id": claims.sub
+    })))
 }
