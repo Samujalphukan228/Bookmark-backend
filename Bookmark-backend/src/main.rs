@@ -73,13 +73,27 @@ async fn main() {
 
     let state = AppState {
         db: database,
-        jwt_secret: config.jwt_secret,
+        jwt_secret: config.jwt_secret.clone(),
     };
 
+    // Parse multiple origins
+    let origins: Vec<HeaderValue> = config.allowed_origins
+        .iter()
+        .filter_map(|o| o.parse::<HeaderValue>().ok())
+        .collect();
+
     let cors = CorsLayer::new()
-        .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
-        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
-        .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION])
+        .allow_origin(origins)
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::DELETE,
+        ])
+        .allow_headers([
+            header::CONTENT_TYPE,
+            header::AUTHORIZATION,
+        ])
         .allow_credentials(true);
 
     // Protected routes
@@ -90,7 +104,10 @@ async fn main() {
         .nest("/tags", tag_routes())
         .nest("/search", search_routes())
         .nest("/import", import_routes())
-        .layer(axum_middleware::from_fn_with_state(state.clone(), auth_middleware));
+        .layer(axum_middleware::from_fn_with_state(
+            state.clone(),
+            auth_middleware,
+        ));
 
     let app = Router::new()
         .nest("/api/auth", auth_routes())
