@@ -5,6 +5,7 @@ import { Bookmark } from "@/types"
 import { bookmarkApi } from "@/lib/api"
 import BookmarkCard from "@/components/bookmarks/BookmarkCard"
 import BookmarkForm from "@/components/bookmarks/BookmarkForm"
+import { HiOutlinePlus, HiOutlineSearch, HiOutlineBookmark } from "react-icons/hi"
 
 export default function BookmarksPage() {
 
@@ -62,45 +63,49 @@ export default function BookmarksPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="text-gray-500">Loading...</div>
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <div className="w-5 h-5 border-2 border-neutral-800 border-t-white rounded-full animate-spin" />
             </div>
         )
     }
 
     return (
-        <div className="space-y-6">
+        <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
 
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Bookmarks</h1>
-                    <p className="text-gray-500 mt-1">
-                        {bookmarks.length} bookmarks total
+                    <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
+                        Bookmarks
+                    </h1>
+                    <p className="text-sm text-neutral-400 mt-1">
+                        {bookmarks.length} {bookmarks.length === 1 ? 'bookmark' : 'bookmarks'} total
                     </p>
                 </div>
                 <button
                     onClick={() => setShowForm(true)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-black text-sm font-medium rounded hover:bg-neutral-200 transition-colors touch-manipulation"
                 >
-                    + Add Bookmark
+                    <HiOutlinePlus className="w-4 h-4" />
+                    <span>Add Bookmark</span>
                 </button>
             </div>
 
             {/* Search */}
-            <div>
+            <div className="relative">
+                <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
                 <input
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Filter bookmarks..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    placeholder="Search bookmarks..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-black border border-neutral-800 rounded text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-700 transition-colors"
                 />
             </div>
 
             {/* Bookmarks Grid */}
             {filtered.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     {filtered.map((bookmark) => (
                         <BookmarkCard
                             key={bookmark.id}
@@ -111,16 +116,29 @@ export default function BookmarksPage() {
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-16 text-gray-400">
+                <div className="py-16 sm:py-24 text-center border border-dashed border-neutral-800 rounded">
                     {search ? (
-                        <p>No bookmarks match your search</p>
+                        <div>
+                            <HiOutlineSearch className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
+                            <p className="text-sm text-white mb-1">No results found</p>
+                            <p className="text-xs text-neutral-500">
+                                Try a different search term
+                            </p>
+                        </div>
                     ) : (
                         <div>
-                            <p className="text-4xl mb-4">🔖</p>
-                            <p className="font-medium">No bookmarks yet</p>
-                            <p className="text-sm mt-1">
-                                Click Add Bookmark to get started
+                            <HiOutlineBookmark className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
+                            <p className="text-sm text-white mb-1">No bookmarks yet</p>
+                            <p className="text-xs text-neutral-500 mb-4">
+                                Get started by adding your first bookmark
                             </p>
+                            <button
+                                onClick={() => setShowForm(true)}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-black text-sm font-medium rounded hover:bg-neutral-200 transition-colors touch-manipulation"
+                            >
+                                <HiOutlinePlus className="w-4 h-4" />
+                                Add Bookmark
+                            </button>
                         </div>
                     )}
                 </div>

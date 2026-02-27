@@ -6,6 +6,13 @@ import { collectionApi } from "@/lib/api"
 import CollectionCard from "@/components/collections/CollectionCard"
 import CollectionForm from "@/components/collections/CollectionForm"
 import { getDomain, formatDate } from "@/lib/utils"
+import { 
+    HiOutlinePlus, 
+    HiOutlineFolder, 
+    HiOutlineBookmark,
+    HiOutlineExternalLink,
+    HiOutlineArrowLeft
+} from "react-icons/hi"
 
 export default function CollectionsPage() {
 
@@ -75,37 +82,144 @@ export default function CollectionsPage() {
         setEditingCollection(null)
     }
 
+    function handleBack() {
+        setSelectedCollection(null)
+        setCollectionBookmarks([])
+    }
+
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="text-gray-500">Loading...</div>
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <div className="w-5 h-5 border-2 border-neutral-800 border-t-white rounded-full animate-spin" />
             </div>
         )
     }
 
     return (
-        <div className="space-y-6">
+        <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
 
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Collections</h1>
-                    <p className="text-gray-500 mt-1">
-                        {collections.length} collections total
+                    <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
+                        Collections
+                    </h1>
+                    <p className="text-sm text-neutral-400 mt-1">
+                        {collections.length} {collections.length === 1 ? 'collection' : 'collections'} total
                     </p>
                 </div>
                 <button
                     onClick={() => setShowForm(true)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-black text-sm font-medium rounded hover:bg-neutral-200 transition-colors touch-manipulation"
                 >
-                    + New Collection
+                    <HiOutlinePlus className="w-4 h-4" />
+                    <span>New Collection</span>
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Mobile: Show either list or detail */}
+            <div className="lg:hidden">
+                {selectedCollection ? (
+                    // Mobile Detail View
+                    <div className="space-y-4">
+                        <button
+                            onClick={handleBack}
+                            className="inline-flex items-center gap-2 text-sm text-neutral-400 hover:text-white transition-colors touch-manipulation"
+                        >
+                            <HiOutlineArrowLeft className="w-4 h-4" />
+                            Back to collections
+                        </button>
 
-                {/* Collections Grid */}
-                <div className="lg:col-span-1 space-y-3">
+                        <div className="border border-neutral-800 rounded">
+                            <div className="p-4 border-b border-neutral-800">
+                                <div className="flex items-center gap-3">
+                                    <HiOutlineFolder className="w-5 h-5 text-neutral-500" />
+                                    <div>
+                                        <h2 className="text-sm font-medium text-white">
+                                            {selectedCollection.name}
+                                        </h2>
+                                        <p className="text-xs text-neutral-500 mt-0.5">
+                                            {selectedCollection.bookmark_count} bookmarks
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {loadingBookmarks ? (
+                                <div className="p-8 flex justify-center">
+                                    <div className="w-5 h-5 border-2 border-neutral-800 border-t-white rounded-full animate-spin" />
+                                </div>
+                            ) : collectionBookmarks.length > 0 ? (
+                                <div className="divide-y divide-neutral-800">
+                                    {collectionBookmarks.map((bookmark) => (
+                                        <a
+                                            key={bookmark.id}
+                                            href={bookmark.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="p-4 flex items-center gap-3 hover:bg-neutral-900 transition-colors touch-manipulation block"
+                                        >
+                                            <div className="w-8 h-8 bg-neutral-900 border border-neutral-800 rounded flex items-center justify-center flex-shrink-0">
+                                                <HiOutlineBookmark className="w-4 h-4 text-neutral-500" />
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-sm text-white truncate">
+                                                    {bookmark.title}
+                                                </p>
+                                                <p className="text-xs text-neutral-500 truncate mt-0.5">
+                                                    {getDomain(bookmark.url)}
+                                                </p>
+                                            </div>
+                                            <HiOutlineExternalLink className="w-4 h-4 text-neutral-600 flex-shrink-0" />
+                                        </a>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="p-8 text-center">
+                                    <HiOutlineBookmark className="w-6 h-6 text-neutral-700 mx-auto mb-2" />
+                                    <p className="text-sm text-neutral-500">No bookmarks in this collection</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    // Mobile List View
+                    <div className="space-y-3">
+                        {collections.length > 0 ? (
+                            collections.map((collection) => (
+                                <CollectionCard
+                                    key={collection.id}
+                                    collection={collection}
+                                    onDelete={handleDelete}
+                                    onEdit={handleEdit}
+                                    onClick={handleCollectionClick}
+                                />
+                            ))
+                        ) : (
+                            <div className="py-16 text-center border border-dashed border-neutral-800 rounded">
+                                <HiOutlineFolder className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
+                                <p className="text-sm text-white mb-1">No collections yet</p>
+                                <p className="text-xs text-neutral-500 mb-4">
+                                    Organize your bookmarks into collections
+                                </p>
+                                <button
+                                    onClick={() => setShowForm(true)}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-white text-black text-sm font-medium rounded hover:bg-neutral-200 transition-colors touch-manipulation"
+                                >
+                                    <HiOutlinePlus className="w-4 h-4" />
+                                    New Collection
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Desktop: Side by side */}
+            <div className="hidden lg:grid lg:grid-cols-3 gap-6">
+
+                {/* Collections List */}
+                <div className="space-y-3">
                     {collections.length > 0 ? (
                         collections.map((collection) => (
                             <CollectionCard
@@ -114,82 +228,89 @@ export default function CollectionsPage() {
                                 onDelete={handleDelete}
                                 onEdit={handleEdit}
                                 onClick={handleCollectionClick}
+                                isSelected={selectedCollection?.id === collection.id}
                             />
                         ))
                     ) : (
-                        <div className="text-center py-16 text-gray-400">
-                            <p className="text-4xl mb-4">📁</p>
-                            <p className="font-medium">No collections yet</p>
-                            <p className="text-sm mt-1">
-                                Click New Collection to get started
+                        <div className="py-16 text-center border border-dashed border-neutral-800 rounded">
+                            <HiOutlineFolder className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
+                            <p className="text-sm text-white mb-1">No collections yet</p>
+                            <p className="text-xs text-neutral-500">
+                                Create one to get started
                             </p>
                         </div>
                     )}
                 </div>
 
-                {/* Collection Bookmarks */}
+                {/* Collection Detail */}
                 <div className="lg:col-span-2">
                     {selectedCollection ? (
-                        <div className="bg-white rounded-xl border border-gray-200">
-
-                            {/* Header */}
-                            <div className="p-6 border-b border-gray-200">
-                                <h2 className="font-semibold text-gray-900">
-                                    📁 {selectedCollection.name}
-                                </h2>
-                                <p className="text-sm text-gray-500 mt-1">
-                                    {selectedCollection.bookmark_count} bookmarks
-                                </p>
+                        <div className="border border-neutral-800 rounded">
+                            <div className="p-5 border-b border-neutral-800">
+                                <div className="flex items-center gap-3">
+                                    <HiOutlineFolder className="w-5 h-5 text-neutral-500" />
+                                    <div>
+                                        <h2 className="text-sm font-medium text-white">
+                                            {selectedCollection.name}
+                                        </h2>
+                                        <p className="text-xs text-neutral-500 mt-0.5">
+                                            {selectedCollection.bookmark_count} bookmarks
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
-                            {/* Bookmarks */}
                             {loadingBookmarks ? (
-                                <div className="p-8 text-center text-gray-400">
-                                    Loading...
+                                <div className="p-12 flex justify-center">
+                                    <div className="w-5 h-5 border-2 border-neutral-800 border-t-white rounded-full animate-spin" />
                                 </div>
                             ) : collectionBookmarks.length > 0 ? (
-                                <div className="divide-y divide-gray-100">
+                                <div className="divide-y divide-neutral-800">
                                     {collectionBookmarks.map((bookmark) => (
-                                        <div
+                                        <a
                                             key={bookmark.id}
-                                            className="p-4 flex items-center justify-between hover:bg-gray-50"
+                                            href={bookmark.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="p-4 flex items-center justify-between hover:bg-neutral-900 transition-colors group"
                                         >
                                             <div className="flex items-center gap-3 min-w-0">
-                                                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm flex-shrink-0">
-                                                    🔖
+                                                <div className="w-8 h-8 bg-neutral-900 border border-neutral-800 rounded flex items-center justify-center flex-shrink-0 group-hover:border-neutral-700">
+                                                    <HiOutlineBookmark className="w-4 h-4 text-neutral-500" />
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <div className="text-sm font-medium text-gray-900 truncate">
+                                                    <p className="text-sm text-white truncate">
                                                         {bookmark.title}
-                                                    </div>
-                                                    <a
-                                                        href={bookmark.url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-xs text-blue-500 hover:underline"
-                                                    >
+                                                    </p>
+                                                    <p className="text-xs text-neutral-500 truncate mt-0.5">
                                                         {getDomain(bookmark.url)}
-                                                    </a>
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <div className="text-xs text-gray-400 flex-shrink-0">
-                                                {formatDate(bookmark.created_at)}
+                                            <div className="flex items-center gap-4 flex-shrink-0 ml-4">
+                                                <span className="text-xs text-neutral-600">
+                                                    {formatDate(bookmark.created_at)}
+                                                </span>
+                                                <HiOutlineExternalLink className="w-4 h-4 text-neutral-600 group-hover:text-neutral-400" />
                                             </div>
-                                        </div>
+                                        </a>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="p-8 text-center text-gray-400">
-                                    <p>No bookmarks in this collection</p>
+                                <div className="p-12 text-center">
+                                    <HiOutlineBookmark className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
+                                    <p className="text-sm text-white mb-1">No bookmarks yet</p>
+                                    <p className="text-xs text-neutral-500">
+                                        Add bookmarks to this collection
+                                    </p>
                                 </div>
                             )}
-
                         </div>
                     ) : (
-                        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400">
-                            <p className="text-4xl mb-4">👈</p>
-                            <p className="font-medium">Select a collection</p>
-                            <p className="text-sm mt-1">
+                        <div className="border border-dashed border-neutral-800 rounded p-12 text-center">
+                            <HiOutlineFolder className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
+                            <p className="text-sm text-white mb-1">Select a collection</p>
+                            <p className="text-xs text-neutral-500">
                                 Click a collection to view its bookmarks
                             </p>
                         </div>

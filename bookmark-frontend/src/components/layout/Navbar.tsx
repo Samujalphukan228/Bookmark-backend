@@ -3,9 +3,13 @@
 import { useEffect, useState } from "react"
 import { authApi } from "@/lib/api"
 import { User } from "@/types"
+import { HiOutlineMenu } from "react-icons/hi"
 
-export default function Navbar() {
+interface NavbarProps {
+    onMenuClick: () => void
+}
 
+export default function Navbar({ onMenuClick }: NavbarProps) {
     const [user, setUser] = useState<User | null>(null)
 
     useEffect(() => {
@@ -15,21 +19,33 @@ export default function Navbar() {
     }, [])
 
     return (
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
-
-            <div className="text-sm text-gray-500">
-                Welcome back 👋
-            </div>
-
+        <header className="h-14 sm:h-16 bg-black border-b border-neutral-800 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30">
+            
             <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium text-sm">
-                    {user?.email?.charAt(0).toUpperCase() || "U"}
-                </div>
-                <span className="text-sm text-gray-700 font-medium">
-                    {user?.email || ""}
+                <button 
+                    onClick={onMenuClick}
+                    className="lg:hidden p-2 hover:bg-neutral-900 rounded transition-colors touch-manipulation"
+                >
+                    <HiOutlineMenu className="w-5 h-5 text-white" />
+                </button>
+
+                <span className="text-sm text-neutral-400 hidden sm:block">
+                    Welcome back
                 </span>
             </div>
 
+            <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-full flex items-center justify-center">
+                        <span className="text-black text-xs sm:text-sm font-medium">
+                            {user?.email?.charAt(0).toUpperCase() || "U"}
+                        </span>
+                    </div>
+                    <span className="text-sm text-neutral-400 hidden md:block">
+                        {user?.email || ""}
+                    </span>
+                </div>
+            </div>
         </header>
     )
 }
