@@ -76,7 +76,6 @@ async fn main() {
         jwt_secret: config.jwt_secret.clone(),
     };
 
-    // Parse multiple origins
     let origins: Vec<HeaderValue> = config.allowed_origins
         .iter()
         .filter_map(|o| o.parse::<HeaderValue>().ok())
@@ -96,7 +95,6 @@ async fn main() {
         ])
         .allow_credentials(true);
 
-    // Protected routes
     let protected = Router::new()
         .route("/me", get(me))
         .nest("/bookmarks", bookmark_routes())
@@ -110,6 +108,7 @@ async fn main() {
         ));
 
     let app = Router::new()
+        .route("/health", get(|| async { "OK" }))  // Health endpoint
         .nest("/api/auth", auth_routes())
         .nest("/api", protected)
         .layer(cors)
