@@ -13,18 +13,14 @@ export default function DashboardLayout({
 
     return (
         <div className="min-h-screen bg-black">
-            {/* Sidebar */}
             <Sidebar 
                 isOpen={sidebarOpen} 
                 onClose={() => setSidebarOpen(false)} 
             />
 
-            {/* Main content - offset by sidebar width on desktop */}
             <div className="lg:ml-64">
-                {/* Navbar */}
                 <Navbar onMenuClick={() => setSidebarOpen(true)} /> 
 
-                {/* Page content */}
                 <main>
                     {children}
                 </main>

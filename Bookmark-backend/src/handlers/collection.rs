@@ -1,38 +1,58 @@
 use axum::{
-    extract::{State, Path},
+    extract::{Path, State},
     http::StatusCode,
     Json,
-    Extension,
 };
-use mongodb::bson::{doc, oid::ObjectId};
 use chrono::Utc;
-use validator::Validate;
 use futures::TryStreamExt;
+use mongodb::bson::{doc, oid::ObjectId, Bson, Document};
+use validator::Validate;
 
-use crate::state::app_state::AppState;
-use crate::models::collection::{
-    Collection,
-    CreateCollectionRequest,
-    UpdateCollectionRequest,
-    CollectionResponse,
-};
+use crate::errors::app_error::AppError;
+use crate::middleware::auth::AuthenticatedUser;
 use crate::models::bookmark::{Bookmark, BookmarkResponse};
-use crate::utils::jwt::Claims;
+use crate::models::collection::{
+    Collection, CollectionResponse, CreateCollectionRequest, UpdateCollectionRequest,
+};
+use crate::state::app_state::AppState;
 
+fn db_error(e: mongodb::error::Error) -> AppError {
+    AppError::Internal(format!("Database error: {e}"))
+}
 
-// Create collection
+fn as_u64(value: &Bson) -> u64 {
+    match value {
+        Bson::Int32(v) => *v as u64,
+        Bson::Int64(v) => *v as u64,
+        Bson::Double(v) => *v as u64,
+        _ => 0,
+    }
+}
+
+fn collection_response_from_doc(doc: Document) -> Result<CollectionResponse, AppError> {
+    let col: Collection = mongodb::bson::from_document(doc.clone())
+        .map_err(|e| AppError::Internal(format!("Failed to deserialize collection: {e}")))?;
+
+    Ok(CollectionResponse {
+        id: col.id.map(|id| id.to_hex()).unwrap_or_default(),
+        name: col.name,
+        description: col.description,
+        bookmark_count: as_u64(doc.get("bookmark_count").unwrap_or(&Bson::Int32(0))),
+        created_at: col.created_at,
+        updated_at: col.updated_at,
+    })
+}
+
 pub async fn create_collection(
     State(state): State<AppState>,
-    Extension(claims): Extension<Claims>,
+    user: AuthenticatedUser,
     Json(body): Json<CreateCollectionRequest>,
-) -> Result<(StatusCode, Json<CollectionResponse>), (StatusCode, String)> {
-
+) -> Result<(StatusCode, Json<CollectionResponse>), AppError> {
     if let Err(errors) = body.validate() {
-        return Err((StatusCode::BAD_REQUEST, errors.to_string()));
+        return Err(AppError::BadRequest(errors.to_string()));
     }
 
-    let user_id = ObjectId::parse_str(&claims.sub)
-        .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid user id".to_string()))?;
+    let user_id = user.0;
 
     let now = Utc::now();
 
@@ -50,10 +70,15 @@ pub async fn create_collection(
     let result = collection
         .insert_one(&collection_doc, None)
         .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Failed to create collection".to_string()))?;
+        .map_err(db_error)?;
+
+    let id = result
+        .inserted_id
+        .as_object_id()
+        .ok_or_else(|| AppError::Internal("Missing inserted id".to_string()))?;
 
     let response = CollectionResponse {
-        id: result.inserted_id.as_object_id().unwrap().to_hex(),
+        id: id.to_hex(),
         name: collection_doc.name,
         description: collection_doc.description,
         bookmark_count: 0,
@@ -64,94 +89,75 @@ pub async fn create_collection(
     Ok((StatusCode::CREATED, Json(response)))
 }
 
-
-// List all collections for user
 pub async fn list_collections(
     State(state): State<AppState>,
-    Extension(claims): Extension<Claims>,
-) -> Result<Json<Vec<CollectionResponse>>, (StatusCode, String)> {
-
-    let user_id = ObjectId::parse_str(&claims.sub)
-        .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid user id".to_string()))?;
+    user: AuthenticatedUser,
+) -> Result<Json<Vec<CollectionResponse>>, AppError> {
+    let user_id = user.0;
 
     let collection = state.db.collection::<Collection>("collections");
-    let bookmarks_col = state.db.collection::<Bookmark>("bookmarks");
+
+    let pipeline = vec![
+        doc! { "$match": { "user_id": user_id } },
+        doc! { "$lookup": {
+            "from": "bookmarks",
+            "localField": "_id",
+            "foreignField": "collection_id",
+            "as": "bms"
+        }},
+        doc! { "$addFields": { "bookmark_count": { "$size": "$bms" } } },
+        doc! { "$project": { "bms": 0 } },
+    ];
 
     let cursor = collection
-        .find(doc! { "user_id": user_id }, None)
+        .aggregate(pipeline, None)
         .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error".to_string()))?;
+        .map_err(db_error)?;
 
-    let collections: Vec<Collection> = cursor
-        .try_collect()
-        .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Failed to fetch collections".to_string()))?;
+    let docs: Vec<Document> = cursor.try_collect().await.map_err(db_error)?;
 
-    let mut response: Vec<CollectionResponse> = Vec::new();
-
-    for col in collections {
-        let col_id = col.id.unwrap();
-
-        let count = bookmarks_col
-            .count_documents(doc! { "collection_id": col_id, "user_id": user_id }, None)
-            .await
-            .unwrap_or(0);
-
-        response.push(CollectionResponse {
-            id: col_id.to_hex(),
-            name: col.name,
-            description: col.description,
-            bookmark_count: count,
-            created_at: col.created_at,
-            updated_at: col.updated_at,
-        });
-    }
+    let response: Vec<CollectionResponse> = docs
+        .into_iter()
+        .map(collection_response_from_doc)
+        .collect::<Result<_, _>>()?;
 
     Ok(Json(response))
 }
 
-
-// Get collection with its bookmarks
 pub async fn get_collection(
     State(state): State<AppState>,
-    Extension(claims): Extension<Claims>,
+    user: AuthenticatedUser,
     Path(id): Path<String>,
-) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
-
-    let user_id = ObjectId::parse_str(&claims.sub)
-        .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid user id".to_string()))?;
+) -> Result<Json<serde_json::Value>, AppError> {
+    let user_id = user.0;
 
     let collection_id = ObjectId::parse_str(&id)
-        .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid collection id".to_string()))?;
+        .map_err(|_| AppError::BadRequest("Invalid collection id".to_string()))?;
 
     let collection = state.db.collection::<Collection>("collections");
     let bookmarks_col = state.db.collection::<Bookmark>("bookmarks");
 
-    // Get collection
     let col = collection
         .find_one(doc! { "_id": collection_id, "user_id": user_id }, None)
         .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error".to_string()))?
-        .ok_or((StatusCode::NOT_FOUND, "Collection not found".to_string()))?;
+        .map_err(db_error)?
+        .ok_or_else(|| AppError::NotFound("Collection not found".to_string()))?;
 
-    // Get bookmarks in collection
     let cursor = bookmarks_col
-        .find(doc! { "collection_id": collection_id, "user_id": user_id }, None)
+        .find(
+            doc! { "collection_id": collection_id, "user_id": user_id },
+            None,
+        )
         .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error".to_string()))?;
+        .map_err(db_error)?;
 
-    let bookmarks: Vec<Bookmark> = cursor
-        .try_collect()
-        .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Failed to fetch bookmarks".to_string()))?;
+    let bookmarks: Vec<Bookmark> = cursor.try_collect().await.map_err(db_error)?;
 
-    let bookmark_responses: Vec<BookmarkResponse> = bookmarks
-        .into_iter()
-        .map(BookmarkResponse::from)
-        .collect();
+    let bookmark_responses: Vec<BookmarkResponse> =
+        bookmarks.into_iter().map(BookmarkResponse::from).collect();
 
     let response = serde_json::json!({
-        "id": col.id.unwrap().to_hex(),
+        "id": col.id.map(|id| id.to_hex()).unwrap_or_default(),
         "name": col.name,
         "description": col.description,
         "bookmarks": bookmark_responses,
@@ -163,57 +169,79 @@ pub async fn get_collection(
     Ok(Json(response))
 }
 
-
-// Update collection
 pub async fn update_collection(
     State(state): State<AppState>,
-    Extension(claims): Extension<Claims>,
+    user: AuthenticatedUser,
     Path(id): Path<String>,
     Json(body): Json<UpdateCollectionRequest>,
-) -> Result<Json<CollectionResponse>, (StatusCode, String)> {
+) -> Result<Json<CollectionResponse>, AppError> {
+    if let Err(errors) = body.validate() {
+        return Err(AppError::BadRequest(errors.to_string()));
+    }
 
-    let user_id = ObjectId::parse_str(&claims.sub)
-        .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid user id".to_string()))?;
+    let user_id = user.0;
 
     let collection_id = ObjectId::parse_str(&id)
-        .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid collection id".to_string()))?;
+        .map_err(|_| AppError::BadRequest("Invalid collection id".to_string()))?;
+
+    if body.name.is_none() && body.description.is_none() {
+        return Err(AppError::BadRequest("No fields to update".to_string()));
+    }
+
+    let mut set = doc! { "updated_at": mongodb::bson::DateTime::now() };
+    let mut unset = doc! {};
+
+    if let Some(name) = &body.name {
+        set.insert("name", name);
+    }
+    if let Some(description) = &body.description {
+        match description {
+            Some(value) => {
+                set.insert("description", value);
+            }
+            None => {
+                unset.insert("description", "");
+            }
+        }
+    }
+
+    let mut update = doc! { "$set": set };
+    if !unset.is_empty() {
+        update.insert("$unset", unset);
+    }
 
     let collection = state.db.collection::<Collection>("collections");
     let bookmarks_col = state.db.collection::<Bookmark>("bookmarks");
 
-    let mut update_doc = doc! {
-        "updated_at": Utc::now().to_rfc3339()
-    };
-
-    if let Some(name) = &body.name {
-        update_doc.insert("name", name);
-    }
-    if let Some(description) = &body.description {
-        update_doc.insert("description", description);
-    }
-
-    collection
+    let result = collection
         .update_one(
             doc! { "_id": collection_id, "user_id": user_id },
-            doc! { "$set": update_doc },
+            update,
             None,
         )
         .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Failed to update collection".to_string()))?;
+        .map_err(db_error)?;
+
+    if result.matched_count == 0 {
+        return Err(AppError::NotFound("Collection not found".to_string()));
+    }
 
     let col = collection
         .find_one(doc! { "_id": collection_id, "user_id": user_id }, None)
         .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error".to_string()))?
-        .ok_or((StatusCode::NOT_FOUND, "Collection not found".to_string()))?;
+        .map_err(db_error)?
+        .ok_or_else(|| AppError::NotFound("Collection not found".to_string()))?;
 
     let count = bookmarks_col
-        .count_documents(doc! { "collection_id": collection_id, "user_id": user_id }, None)
+        .count_documents(
+            doc! { "collection_id": collection_id, "user_id": user_id },
+            None,
+        )
         .await
         .unwrap_or(0);
 
     let response = CollectionResponse {
-        id: col.id.unwrap().to_hex(),
+        id: col.id.map(|id| id.to_hex()).unwrap_or_default(),
         name: col.name,
         description: col.description,
         bookmark_count: count,
@@ -224,34 +252,28 @@ pub async fn update_collection(
     Ok(Json(response))
 }
 
-
-// Delete collection
 pub async fn delete_collection(
     State(state): State<AppState>,
-    Extension(claims): Extension<Claims>,
+    user: AuthenticatedUser,
     Path(id): Path<String>,
-) -> Result<StatusCode, (StatusCode, String)> {
-
-    let user_id = ObjectId::parse_str(&claims.sub)
-        .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid user id".to_string()))?;
+) -> Result<StatusCode, AppError> {
+    let user_id = user.0;
 
     let collection_id = ObjectId::parse_str(&id)
-        .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid collection id".to_string()))?;
+        .map_err(|_| AppError::BadRequest("Invalid collection id".to_string()))?;
 
     let collection = state.db.collection::<Collection>("collections");
     let bookmarks_col = state.db.collection::<Bookmark>("bookmarks");
 
-    // Delete collection
     let result = collection
         .delete_one(doc! { "_id": collection_id, "user_id": user_id }, None)
         .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Failed to delete collection".to_string()))?;
+        .map_err(db_error)?;
 
     if result.deleted_count == 0 {
-        return Err((StatusCode::NOT_FOUND, "Collection not found".to_string()));
+        return Err(AppError::NotFound("Collection not found".to_string()));
     }
 
-    // Remove collection_id from bookmarks (don't delete bookmarks)
     bookmarks_col
         .update_many(
             doc! { "collection_id": collection_id, "user_id": user_id },
@@ -259,7 +281,7 @@ pub async fn delete_collection(
             None,
         )
         .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Failed to update bookmarks".to_string()))?;
+        .map_err(db_error)?;
 
     Ok(StatusCode::NO_CONTENT)
 }

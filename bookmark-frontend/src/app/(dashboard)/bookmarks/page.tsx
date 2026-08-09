@@ -72,7 +72,6 @@ export default function BookmarksPage() {
     return (
         <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
 
-            {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
@@ -91,7 +90,6 @@ export default function BookmarksPage() {
                 </button>
             </div>
 
-            {/* Search */}
             <div className="relative">
                 <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
                 <input
@@ -103,7 +101,6 @@ export default function BookmarksPage() {
                 />
             </div>
 
-            {/* Bookmarks Grid */}
             {filtered.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     {filtered.map((bookmark) => (
@@ -144,7 +141,6 @@ export default function BookmarksPage() {
                 </div>
             )}
 
-            {/* Form Modal */}
             {showForm && (
                 <BookmarkForm
                     bookmark={editingBookmark || undefined}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Bookmark, Collection, CreateBookmarkInput } from "@/types"
-import { bookmarkApi, collectionApi } from "@/lib/api"
+import { bookmarkApi, collectionApi, getErrorMessage } from "@/lib/api"
 import { HiOutlineX, HiOutlineExclamation } from "react-icons/hi"
 
 interface BookmarkFormProps {
@@ -53,8 +53,8 @@ export default function BookmarkForm({
                 response = await bookmarkApi.create(data)
             }
             onSuccess(response.data)
-        } catch (err: any) {
-            setError(err.response?.data || "Failed to save bookmark")
+        } catch (err) {
+            setError(getErrorMessage(err, "Failed to save bookmark"))
         } finally {
             setLoading(false)
         }
@@ -64,7 +64,6 @@ export default function BookmarkForm({
         <div className="fixed inset-0 bg-black/80 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
             <div className="bg-black border border-neutral-800 w-full sm:max-w-md sm:rounded-lg max-h-[90vh] flex flex-col">
 
-                {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-neutral-800 flex-shrink-0">
                     <h2 className="text-base font-medium text-white">
                         {bookmark ? "Edit Bookmark" : "Add Bookmark"}
@@ -77,7 +76,6 @@ export default function BookmarkForm({
                     </button>
                 </div>
 
-                {/* Form */}
                 <form onSubmit={handleSubmit} className="p-4 space-y-4 overflow-y-auto flex-1">
 
                     {error && (
@@ -170,7 +168,6 @@ export default function BookmarkForm({
                         </select>
                     </div>
 
-                    {/* Buttons */}
                     <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2">
                         <button
                             type="button"

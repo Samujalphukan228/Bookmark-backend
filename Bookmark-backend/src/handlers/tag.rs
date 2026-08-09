@@ -1,32 +1,30 @@
 use axum::{
-    extract::{State, Query},
-    http::StatusCode,
+    extract::{Query, State},
     Json,
-    Extension,
 };
-use mongodb::bson::{doc, oid::ObjectId};
 use futures::TryStreamExt;
+use mongodb::bson::doc;
 use serde::Deserialize;
 
-use crate::state::app_state::AppState;
+use crate::errors::app_error::AppError;
+use crate::middleware::auth::AuthenticatedUser;
 use crate::models::bookmark::{Bookmark, BookmarkResponse};
-use crate::utils::jwt::Claims;
-
+use crate::state::app_state::AppState;
 
 #[derive(Debug, Deserialize)]
 pub struct TagQuery {
     pub tag: String,
 }
 
+fn db_error(e: mongodb::error::Error) -> AppError {
+    AppError::Internal(format!("Database error: {e}"))
+}
 
-// List all unique tags with counts
 pub async fn list_tags(
     State(state): State<AppState>,
-    Extension(claims): Extension<Claims>,
-) -> Result<Json<Vec<serde_json::Value>>, (StatusCode, String)> {
-
-    let user_id = ObjectId::parse_str(&claims.sub)
-        .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid user id".to_string()))?;
+    user: AuthenticatedUser,
+) -> Result<Json<Vec<serde_json::Value>>, AppError> {
+    let user_id = user.0;
 
     let collection = state.db.collection::<Bookmark>("bookmarks");
 
@@ -43,18 +41,15 @@ pub async fn list_tags(
     let cursor = collection
         .aggregate(pipeline, None)
         .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error".to_string()))?;
+        .map_err(db_error)?;
 
-    let results: Vec<mongodb::bson::Document> = cursor
-        .try_collect()
-        .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Failed to fetch tags".to_string()))?;
+    let results: Vec<mongodb::bson::Document> = cursor.try_collect().await.map_err(db_error)?;
 
     let tags: Vec<serde_json::Value> = results
         .into_iter()
         .map(|doc| {
             serde_json::json!({
-                "name": doc.get_str("_id").unwrap_or(""),
+                "name": doc.get_str("_id").unwrap_or_default(),
                 "count": doc.get_i32("count").unwrap_or(0)
             })
         })
@@ -63,33 +58,24 @@ pub async fn list_tags(
     Ok(Json(tags))
 }
 
-
-// Get bookmarks by tag
 pub async fn bookmarks_by_tag(
     State(state): State<AppState>,
-    Extension(claims): Extension<Claims>,
+    user: AuthenticatedUser,
     Query(query): Query<TagQuery>,
-) -> Result<Json<Vec<BookmarkResponse>>, (StatusCode, String)> {
-
-    let user_id = ObjectId::parse_str(&claims.sub)
-        .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid user id".to_string()))?;
+) -> Result<Json<Vec<BookmarkResponse>>, AppError> {
+    let user_id = user.0;
 
     let collection = state.db.collection::<Bookmark>("bookmarks");
 
     let cursor = collection
         .find(doc! { "user_id": user_id, "tags": &query.tag }, None)
         .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error".to_string()))?;
+        .map_err(db_error)?;
 
-    let bookmarks: Vec<Bookmark> = cursor
-        .try_collect()
-        .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Failed to fetch bookmarks".to_string()))?;
+    let bookmarks: Vec<Bookmark> = cursor.try_collect().await.map_err(db_error)?;
 
-    let response: Vec<BookmarkResponse> = bookmarks
-        .into_iter()
-        .map(BookmarkResponse::from)
-        .collect();
+    let response: Vec<BookmarkResponse> =
+        bookmarks.into_iter().map(BookmarkResponse::from).collect();
 
     Ok(Json(response))
 }

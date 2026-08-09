@@ -10,9 +10,7 @@ import { formatDate, getDomain } from "@/lib/utils"
 import { 
     HiOutlineBookmark, 
     HiOutlineFolder, 
-    HiOutlineTag,
     HiOutlineArrowRight,
-    HiOutlineExternalLink,
     HiOutlinePlus
 } from "react-icons/hi"
 
@@ -53,7 +51,6 @@ export default function DashboardPage() {
     return (
         <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-8 sm:space-y-12">
 
-            {/* Header */}
             <div>
                 <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
                     Dashboard
@@ -63,7 +60,6 @@ export default function DashboardPage() {
                 </p>
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-3 gap-3 sm:gap-6">
                 <div className="p-4 sm:p-6 border border-neutral-800 rounded">
                     <p className="text-xs sm:text-sm text-neutral-400 mb-1 sm:mb-2">Bookmarks</p>
@@ -87,7 +83,6 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* Recent Bookmarks */}
             <div>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-sm font-medium text-white">Recent Bookmarks</h2>
@@ -142,7 +137,6 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* Collections */}
             <div>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-sm font-medium text-white">Collections</h2>
@@ -186,7 +180,6 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* Tags */}
             {tags.length > 0 && (
                 <div>
                     <h2 className="text-sm font-medium text-white mb-4">Tags</h2>

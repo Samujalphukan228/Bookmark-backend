@@ -41,7 +41,6 @@ export default function BookmarkCard({
     return (
         <div className="border border-neutral-800 rounded p-4 hover:border-neutral-700 hover:bg-neutral-900/50 transition-colors group">
 
-            {/* Header */}
             <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 min-w-0">
                     <div className="w-8 h-8 bg-neutral-900 border border-neutral-800 rounded flex items-center justify-center flex-shrink-0 group-hover:border-neutral-700">
@@ -63,7 +62,6 @@ export default function BookmarkCard({
                     </div>
                 </div>
 
-                {/* Actions */}
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                     <button
                         onClick={() => onEdit(bookmark)}
@@ -81,14 +79,12 @@ export default function BookmarkCard({
                 </div>
             </div>
 
-            {/* Description */}
             {bookmark.description && (
                 <p className="text-xs text-neutral-500 mt-3 line-clamp-2">
                     {bookmark.description}
                 </p>
             )}
 
-            {/* Tags */}
             {bookmark.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-3">
                     {bookmark.tags.map((tag) => (
@@ -102,7 +98,6 @@ export default function BookmarkCard({
                 </div>
             )}
 
-            {/* Footer */}
             <div className="text-xs text-neutral-600 mt-3">
                 {formatDate(bookmark.created_at)}
             </div>

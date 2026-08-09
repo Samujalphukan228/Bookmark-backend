@@ -1,10 +1,7 @@
-use axum::{
-    routing::get,
-    Router,
-};
+use axum::{routing::get, Router};
 
+use crate::handlers::tag::{bookmarks_by_tag, list_tags};
 use crate::state::app_state::AppState;
-use crate::handlers::tag::{list_tags, bookmarks_by_tag};
 
 pub fn tag_routes() -> Router<AppState> {
     Router::new()

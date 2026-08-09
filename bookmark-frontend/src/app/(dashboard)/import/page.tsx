@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { importApi } from "@/lib/api"
+import { importApi, getErrorMessage } from "@/lib/api"
 import { ImportResult } from "@/types"
 import { 
     HiOutlineUpload, 
@@ -28,8 +28,8 @@ export default function ImportPage() {
         try {
             const res = await importApi.import(file)
             setResult(res.data)
-        } catch (err: any) {
-            setError(err.response?.data || "Import failed")
+        } catch (err) {
+            setError(getErrorMessage(err, "Import failed"))
         } finally {
             setLoading(false)
         }
@@ -38,7 +38,6 @@ export default function ImportPage() {
     return (
         <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
 
-            {/* Header */}
             <div>
                 <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
                     Import Bookmarks
@@ -48,7 +47,6 @@ export default function ImportPage() {
                 </p>
             </div>
 
-            {/* How to export */}
             <div className="border border-neutral-800 rounded p-4 sm:p-5">
                 <h2 className="text-sm font-medium text-white mb-4">
                     How to export from your browser
@@ -77,7 +75,6 @@ export default function ImportPage() {
                 </div>
             </div>
 
-            {/* Upload Form */}
             <form onSubmit={handleImport} className="space-y-4">
 
                 {error && (
@@ -87,7 +84,6 @@ export default function ImportPage() {
                     </div>
                 )}
 
-                {/* File Upload */}
                 <div>
                     <label className="block text-sm font-medium text-white mb-2">
                         Bookmark HTML File
@@ -150,7 +146,6 @@ export default function ImportPage() {
 
             </form>
 
-            {/* Result */}
             {result && (
                 <div className="border border-neutral-800 rounded p-5 sm:p-6">
                     <div className="flex items-center gap-2 mb-5">

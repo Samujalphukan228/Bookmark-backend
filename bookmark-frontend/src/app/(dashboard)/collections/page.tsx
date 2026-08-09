@@ -98,7 +98,6 @@ export default function CollectionsPage() {
     return (
         <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
 
-            {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
@@ -117,10 +116,8 @@ export default function CollectionsPage() {
                 </button>
             </div>
 
-            {/* Mobile: Show either list or detail */}
             <div className="lg:hidden">
                 {selectedCollection ? (
-                    // Mobile Detail View
                     <div className="space-y-4">
                         <button
                             onClick={handleBack}
@@ -183,7 +180,6 @@ export default function CollectionsPage() {
                         </div>
                     </div>
                 ) : (
-                    // Mobile List View
                     <div className="space-y-3">
                         {collections.length > 0 ? (
                             collections.map((collection) => (
@@ -215,10 +211,8 @@ export default function CollectionsPage() {
                 )}
             </div>
 
-            {/* Desktop: Side by side */}
             <div className="hidden lg:grid lg:grid-cols-3 gap-6">
 
-                {/* Collections List */}
                 <div className="space-y-3">
                     {collections.length > 0 ? (
                         collections.map((collection) => (
@@ -242,7 +236,6 @@ export default function CollectionsPage() {
                     )}
                 </div>
 
-                {/* Collection Detail */}
                 <div className="lg:col-span-2">
                     {selectedCollection ? (
                         <div className="border border-neutral-800 rounded">
@@ -319,7 +312,6 @@ export default function CollectionsPage() {
 
             </div>
 
-            {/* Form Modal */}
             {showForm && (
                 <CollectionForm
                     collection={editingCollection || undefined}

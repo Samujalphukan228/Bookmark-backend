@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Collection } from "@/types"
 import { collectionApi } from "@/lib/api"
-import { formatDate } from "@/lib/utils"
 import { HiOutlineFolder, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi"
 
 interface CollectionCardProps {
@@ -55,7 +54,6 @@ export default function CollectionCard({
             `}
         >
 
-            {/* Header */}
             <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                     <HiOutlineFolder className={`w-5 h-5 flex-shrink-0 ${
@@ -75,7 +73,6 @@ export default function CollectionCard({
                     </div>
                 </div>
 
-                {/* Actions */}
                 <div className={`
                     flex items-center gap-1 
                     ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
@@ -105,7 +102,6 @@ export default function CollectionCard({
                 </div>
             </div>
 
-            {/* Description */}
             {collection.description && (
                 <p className={`text-xs mt-2 line-clamp-2 ${
                     isSelected ? 'text-neutral-600' : 'text-neutral-500'

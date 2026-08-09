@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { authApi } from "@/lib/api"
+import { authApi, getErrorMessage } from "@/lib/api"
 import { HiOutlineBookmark, HiOutlineExclamation, HiOutlineCheck, HiOutlineX } from "react-icons/hi"
 
 export default function RegisterPage() {
@@ -42,8 +42,8 @@ export default function RegisterPage() {
         try {
             await authApi.register(email, password)
             router.push("/login")
-        } catch (err: any) {
-            setError(err.response?.data || "Registration failed")
+        } catch (err) {
+            setError(getErrorMessage(err, "Registration failed"))
         } finally {
             setLoading(false)
         }
@@ -51,12 +51,10 @@ export default function RegisterPage() {
 
     return (
         <div className="min-h-screen bg-black flex flex-col">
-            
-            {/* Main Content */}
+
             <div className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
                 <div className="w-full max-w-sm">
-                    
-                    {/* Logo */}
+
                     <div className="text-center mb-8 sm:mb-10">
                         <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded mx-auto flex items-center justify-center mb-4">
                             <HiOutlineBookmark className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
@@ -66,7 +64,6 @@ export default function RegisterPage() {
                         </h1>
                     </div>
 
-                    {/* Error */}
                     {error && (
                         <div className="flex items-center gap-3 px-4 py-3 border border-red-900/50 bg-red-950/20 rounded text-sm text-red-400 mb-6">
                             <HiOutlineExclamation className="w-5 h-5 flex-shrink-0" />
@@ -74,10 +71,8 @@ export default function RegisterPage() {
                         </div>
                     )}
 
-                    {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        
-                        {/* Email Field */}
+
                         <div>
                             <label className="block text-sm text-neutral-400 mb-2">
                                 Email
@@ -93,7 +88,6 @@ export default function RegisterPage() {
                             />
                         </div>
 
-                        {/* Password Field */}
                         <div>
                             <label className="block text-sm text-neutral-400 mb-2">
                                 Password
@@ -107,8 +101,7 @@ export default function RegisterPage() {
                                 className="w-full px-3 py-2.5 bg-black border border-neutral-800 rounded text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-600 transition-colors"
                                 placeholder="••••••••"
                             />
-                            
-                            {/* Password Strength Indicator */}
+
                             {password && (
                                 <div className="mt-2 flex items-center gap-2">
                                     <div className="flex gap-1 flex-1">
@@ -130,7 +123,6 @@ export default function RegisterPage() {
                             )}
                         </div>
 
-                        {/* Confirm Password Field */}
                         <div>
                             <label className="block text-sm text-neutral-400 mb-2">
                                 Confirm Password
@@ -145,8 +137,7 @@ export default function RegisterPage() {
                                     className="w-full px-3 py-2.5 bg-black border border-neutral-800 rounded text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-600 transition-colors pr-10"
                                     placeholder="••••••••"
                                 />
-                                
-                                {/* Password Match Indicator */}
+
                                 {confirm && (
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                                         {password === confirm ? (
@@ -159,7 +150,6 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
-                        {/* Terms Agreement */}
                         <div className="flex items-start gap-3 pt-2">
                             <input 
                                 type="checkbox" 
@@ -179,7 +169,6 @@ export default function RegisterPage() {
                             </label>
                         </div>
 
-                        {/* Submit Button */}
                         <button
                             type="submit"
                             disabled={loading}
@@ -196,14 +185,12 @@ export default function RegisterPage() {
                         </button>
                     </form>
 
-                    {/* Divider */}
                     <div className="flex items-center my-6">
                         <div className="flex-1 h-px bg-neutral-800" />
                         <span className="px-4 text-xs text-neutral-600">or</span>
                         <div className="flex-1 h-px bg-neutral-800" />
                     </div>
 
-                    {/* Login Link */}
                     <div className="text-center">
                         <p className="text-sm text-neutral-500">
                             Already have an account?{" "}
@@ -219,7 +206,6 @@ export default function RegisterPage() {
                 </div>
             </div>
 
-            {/* Footer */}
             <footer className="py-6 px-4 border-t border-neutral-900">
                 <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-xs text-neutral-600">
                     <Link href="/privacy" className="hover:text-white transition-colors">

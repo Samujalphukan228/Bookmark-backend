@@ -1,36 +1,35 @@
 use axum::{
-    extract::{State, Query},
-    http::StatusCode,
+    extract::{Query, State},
     Json,
-    Extension,
 };
-use mongodb::bson::{doc, oid::ObjectId};
 use futures::TryStreamExt;
+use mongodb::bson::doc;
 use serde::Deserialize;
 
-use crate::state::app_state::AppState;
+use crate::errors::app_error::AppError;
+use crate::middleware::auth::AuthenticatedUser;
 use crate::models::bookmark::{Bookmark, BookmarkResponse};
-use crate::utils::jwt::Claims;
-
+use crate::state::app_state::AppState;
 
 #[derive(Debug, Deserialize)]
 pub struct SearchQuery {
     pub q: String,
 }
 
+fn db_error(e: mongodb::error::Error) -> AppError {
+    AppError::Internal(format!("Database error: {e}"))
+}
 
 pub async fn search_bookmarks(
     State(state): State<AppState>,
-    Extension(claims): Extension<Claims>,
+    user: AuthenticatedUser,
     Query(query): Query<SearchQuery>,
-) -> Result<Json<Vec<BookmarkResponse>>, (StatusCode, String)> {
-
+) -> Result<Json<Vec<BookmarkResponse>>, AppError> {
     if query.q.trim().is_empty() {
-        return Err((StatusCode::BAD_REQUEST, "Search query required".to_string()));
+        return Err(AppError::BadRequest("Search query required".to_string()));
     }
 
-    let user_id = ObjectId::parse_str(&claims.sub)
-        .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid user id".to_string()))?;
+    let user_id = user.0;
 
     let collection = state.db.collection::<Bookmark>("bookmarks");
 
@@ -41,20 +40,12 @@ pub async fn search_bookmarks(
         ]
     };
 
-    let cursor = collection
-        .find(filter, None)
-        .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error".to_string()))?;
+    let cursor = collection.find(filter, None).await.map_err(db_error)?;
 
-    let bookmarks: Vec<Bookmark> = cursor
-        .try_collect()
-        .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Failed to fetch results".to_string()))?;
+    let bookmarks: Vec<Bookmark> = cursor.try_collect().await.map_err(db_error)?;
 
-    let response: Vec<BookmarkResponse> = bookmarks
-        .into_iter()
-        .map(BookmarkResponse::from)
-        .collect();
+    let response: Vec<BookmarkResponse> =
+        bookmarks.into_iter().map(BookmarkResponse::from).collect();
 
     Ok(Json(response))
 }

@@ -1,6 +1,6 @@
+use chrono::{DateTime, Utc};
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
-use chrono::{DateTime, Utc};
 use validator::Validate;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -52,11 +52,11 @@ pub struct UpdateBookmarkRequest {
     #[validate(url(message = "Invalid URL"))]
     pub url: Option<String>,
 
-    pub description: Option<String>,
+    pub description: Option<Option<String>>,
 
     pub tags: Option<Vec<String>>,
 
-    pub collection_id: Option<String>,
+    pub collection_id: Option<Option<String>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -74,7 +74,7 @@ pub struct BookmarkResponse {
 impl From<Bookmark> for BookmarkResponse {
     fn from(b: Bookmark) -> Self {
         Self {
-            id: b.id.unwrap().to_hex(),
+            id: b.id.map(|id| id.to_hex()).unwrap_or_default(),
             title: b.title,
             url: b.url,
             description: b.description,

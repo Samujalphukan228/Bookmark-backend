@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Collection, CreateCollectionInput } from "@/types"
-import { collectionApi } from "@/lib/api"
+import { collectionApi, getErrorMessage } from "@/lib/api"
 import { HiOutlineX, HiOutlineExclamation } from "react-icons/hi"
 
 interface CollectionFormProps {
@@ -40,8 +40,8 @@ export default function CollectionForm({
                 response = await collectionApi.create(data)
             }
             onSuccess(response.data)
-        } catch (err: any) {
-            setError(err.response?.data || "Failed to save collection")
+        } catch (err) {
+            setError(getErrorMessage(err, "Failed to save collection"))
         } finally {
             setLoading(false)
         }
@@ -51,7 +51,6 @@ export default function CollectionForm({
         <div className="fixed inset-0 bg-black/80 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
             <div className="bg-black border border-neutral-800 w-full sm:max-w-md sm:rounded-lg">
 
-                {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-neutral-800">
                     <h2 className="text-base font-medium text-white">
                         {collection ? "Edit Collection" : "New Collection"}
@@ -64,7 +63,6 @@ export default function CollectionForm({
                     </button>
                 </div>
 
-                {/* Form */}
                 <form onSubmit={handleSubmit} className="p-4 space-y-4">
 
                     {error && (
@@ -103,7 +101,6 @@ export default function CollectionForm({
                         />
                     </div>
 
-                    {/* Buttons */}
                     <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2">
                         <button
                             type="button"

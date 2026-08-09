@@ -1,6 +1,6 @@
+use chrono::{DateTime, Utc};
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
-use chrono::{DateTime, Utc};
 use validator::Validate;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -38,10 +38,4 @@ pub struct LoginRequest {
 
     #[validate(length(min = 1, message = "Password required"))]
     pub password: String,
-}
-
-#[derive(Debug, Serialize)]
-pub struct LoginResponse {
-    pub token: String,
-    pub user: UserResponse,
 }

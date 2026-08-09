@@ -33,7 +33,7 @@ Never lose your bookmarks again when switching browsers or devices.
 - Create bookmark
 - Edit bookmark
 - Delete bookmark
-- List bookmarks
+- List bookmarks (paginated with `?limit=` & `?offset=`, newest first)
 - View single bookmark
 
 ### Collections
@@ -57,6 +57,8 @@ Search bookmarks by:
 - Description
 - URL
 - Tags
+
+The search runs against a MongoDB text index covering all four fields.
 
 ### Import
 
@@ -143,7 +145,7 @@ GET | /api/me | Get current user | Yes
 | Method | Route | Description | Auth Required |
 |-------|------|-------------|---------------|
 POST | /api/bookmarks | Create bookmark | Yes
-GET | /api/bookmarks | List bookmarks | Yes
+GET | /api/bookmarks | List bookmarks (optional `?limit=50&offset=0`) | Yes
 GET | /api/bookmarks/:id | Get bookmark | Yes
 PUT | /api/bookmarks/:id | Update bookmark | Yes
 DELETE | /api/bookmarks/:id | Delete bookmark | Yes

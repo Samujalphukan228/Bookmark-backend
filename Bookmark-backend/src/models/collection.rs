@@ -1,6 +1,6 @@
+use chrono::{DateTime, Utc};
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
-use chrono::{DateTime, Utc};
 use validator::Validate;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -28,11 +28,12 @@ pub struct CreateCollectionRequest {
     pub description: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 pub struct UpdateCollectionRequest {
+    #[validate(length(min = 1, message = "Name required"))]
     pub name: Option<String>,
 
-    pub description: Option<String>,
+    pub description: Option<Option<String>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -44,4 +45,3 @@ pub struct CollectionResponse {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
-

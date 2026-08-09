@@ -32,7 +32,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
 
-    // Prevent body scroll when sidebar is open on mobile
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden'
@@ -45,7 +44,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         }
     }, [isOpen])
 
-    // Close on escape key
     useEffect(() => {
         function handleEscape(e: KeyboardEvent) {
             if (e.key === 'Escape') {
@@ -74,14 +72,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         }
     }
 
-    // Close sidebar when route changes
     useEffect(() => {
         onClose()
     }, [pathname, onClose])
 
     return (
         <>
-            {/* Overlay */}
             <div 
                 className={`
                     fixed inset-0 bg-black/80 z-40 lg:hidden
@@ -91,7 +87,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 onClick={onClose}
             />
 
-            {/* Sidebar */}
             <aside className={`
                 fixed top-0 left-0 bottom-0 z-50
                 w-[85vw] max-w-[300px] sm:w-64
@@ -111,7 +106,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             }}
             >
 
-                {/* Logo */}
                 <div className="h-16 px-4 flex items-center justify-between flex-shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center">
@@ -131,13 +125,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     </button>
                 </div>
 
-                {/* Navigation */}
                 <nav className="flex-1 px-3 py-4 overflow-y-auto">
                     <div className="space-y-1">
                         {links.map((link) => {
                             const isActive = pathname === link.href
                             const Icon = link.icon
-                            
+
                             return (
                                 <Link
                                     key={link.href}
@@ -159,7 +152,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     </div>
                 </nav>
 
-                {/* Logout */}
                 <div className="px-3 py-4 border-t border-neutral-800 flex-shrink-0">
                     <button
                         onClick={handleLogout}

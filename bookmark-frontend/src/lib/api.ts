@@ -2,13 +2,12 @@ import axios from "axios"
 
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
-    withCredentials: true, // Important for cookies
+    withCredentials: true,
     headers: {
         "Content-Type": "application/json",
     },
 })
 
-// Auth
 export const authApi = {
     register: (email: string, password: string) =>
         api.post("/auth/register", { email, password }),
@@ -23,7 +22,6 @@ export const authApi = {
         api.get("/me"),
 }
 
-// Bookmarks
 export const bookmarkApi = {
     create: (data: import("@/types").CreateBookmarkInput) =>
         api.post("/bookmarks", data),
@@ -41,7 +39,6 @@ export const bookmarkApi = {
         api.delete(`/bookmarks/${id}`),
 }
 
-// Collections
 export const collectionApi = {
     create: (data: import("@/types").CreateCollectionInput) =>
         api.post("/collections", data),
@@ -59,7 +56,6 @@ export const collectionApi = {
         api.delete(`/collections/${id}`),
 }
 
-// Tags
 export const tagApi = {
     list: () =>
         api.get("/tags"),
@@ -68,13 +64,11 @@ export const tagApi = {
         api.get(`/tags/bookmarks?tag=${tag}`),
 }
 
-// Search
 export const searchApi = {
     search: (q: string) =>
         api.get(`/search?q=${q}`),
 }
 
-// Import
 export const importApi = {
     import: (file: File) => {
         const formData = new FormData()
@@ -86,3 +80,10 @@ export const importApi = {
 }
 
 export default api
+
+export function getErrorMessage(err: unknown, fallback: string): string {
+    if (axios.isAxiosError(err)) {
+        return err.response?.data?.message || fallback
+    }
+    return fallback
+}

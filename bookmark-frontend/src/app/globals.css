@@ -1,5 +1,4 @@
 
-
 @import "tailwindcss";
 
 :root {
@@ -26,7 +25,6 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Ensure all root elements have black background */
 #__next,
 #root,
 main {
@@ -34,7 +32,6 @@ main {
     min-height: 100vh;
 }
 
-/* Scrollbar styling for dark theme */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -53,25 +50,21 @@ main {
     background: #444444;
 }
 
-/* Firefox scrollbar */
 * {
     scrollbar-width: thin;
     scrollbar-color: #333333 #0a0a0a;
 }
 
-/* Selection styling */
 ::selection {
     background-color: #ffffff;
     color: #000000;
 }
 
-/* Focus styles for accessibility */
 :focus-visible {
     outline: 2px solid #ffffff;
     outline-offset: 2px;
 }
 
-/* Remove tap highlight on mobile */
 * {
     -webkit-tap-highlight-color: transparent;
 }

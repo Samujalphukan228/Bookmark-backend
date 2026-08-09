@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { authApi } from "@/lib/api"
+import { authApi, getErrorMessage } from "@/lib/api"
 import { HiOutlineBookmark, HiOutlineExclamation } from "react-icons/hi"
 
 export default function LoginPage() {
@@ -21,8 +21,8 @@ export default function LoginPage() {
         try {
             await authApi.login(email, password)
             router.push("/dashboard")
-        } catch (err: any) {
-            setError(err.response?.data || "Login failed")
+        } catch (err) {
+            setError(getErrorMessage(err, "Login failed"))
         } finally {
             setLoading(false)
         }
@@ -30,12 +30,10 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-black flex flex-col">
-            
-            {/* Main Content */}
+
             <div className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
                 <div className="w-full max-w-sm">
-                    
-                    {/* Logo */}
+
                     <div className="text-center mb-8 sm:mb-10">
                         <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded mx-auto flex items-center justify-center mb-4">
                             <HiOutlineBookmark className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
@@ -45,7 +43,6 @@ export default function LoginPage() {
                         </h1>
                     </div>
 
-                    {/* Error */}
                     {error && (
                         <div className="flex items-center gap-3 px-4 py-3 border border-red-900/50 bg-red-950/20 rounded text-sm text-red-400 mb-6">
                             <HiOutlineExclamation className="w-5 h-5 flex-shrink-0" />
@@ -53,10 +50,8 @@ export default function LoginPage() {
                         </div>
                     )}
 
-                    {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        
-                        {/* Email Field */}
+
                         <div>
                             <label className="block text-sm text-neutral-400 mb-2">
                                 Email
@@ -72,7 +67,6 @@ export default function LoginPage() {
                             />
                         </div>
 
-                        {/* Password Field */}
                         <div>
                             <div className="flex items-center justify-between mb-2">
                                 <label className="text-sm text-neutral-400">
@@ -96,7 +90,6 @@ export default function LoginPage() {
                             />
                         </div>
 
-                        {/* Submit Button */}
                         <button
                             type="submit"
                             disabled={loading}
@@ -113,17 +106,15 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    {/* Divider */}
                     <div className="flex items-center my-6">
                         <div className="flex-1 h-px bg-neutral-800" />
                         <span className="px-4 text-xs text-neutral-600">or</span>
                         <div className="flex-1 h-px bg-neutral-800" />
                     </div>
 
-                    {/* Register Link */}
                     <div className="text-center">
                         <p className="text-sm text-neutral-500">
-                            Don't have an account?{" "}
+                            Don&apos;t have an account?{" "}
                             <Link
                                 href="/register"
                                 className="text-white hover:underline transition-colors"
@@ -136,7 +127,6 @@ export default function LoginPage() {
                 </div>
             </div>
 
-            {/* Footer */}
             <footer className="py-6 px-4 border-t border-neutral-900">
                 <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-xs text-neutral-600">
                     <Link href="/privacy" className="hover:text-white transition-colors">

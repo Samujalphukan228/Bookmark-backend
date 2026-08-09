@@ -61,7 +61,6 @@ export default function SearchPage() {
     return (
         <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
 
-            {/* Header */}
             <div>
                 <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
                     Search
@@ -71,7 +70,6 @@ export default function SearchPage() {
                 </p>
             </div>
 
-            {/* Search Bar */}
             <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                     <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
@@ -92,7 +90,6 @@ export default function SearchPage() {
                 </button>
             </form>
 
-            {/* Tags */}
             {tags.length > 0 && (
                 <div>
                     <h2 className="text-sm font-medium text-white mb-3">
@@ -123,11 +120,9 @@ export default function SearchPage() {
                 </div>
             )}
 
-            {/* Results */}
             {searched && (
                 <div className="space-y-4">
 
-                    {/* Results Header */}
                     <div className="flex items-center justify-between">
                         <h2 className="text-sm font-medium text-white">
                             {loading ? "Searching..." : (
@@ -143,14 +138,12 @@ export default function SearchPage() {
                         )}
                     </div>
 
-                    {/* Loading */}
                     {loading && (
                         <div className="py-12 flex justify-center">
                             <div className="w-5 h-5 border-2 border-neutral-800 border-t-white rounded-full animate-spin" />
                         </div>
                     )}
 
-                    {/* Results List */}
                     {!loading && results.length > 0 && (
                         <div className="border border-neutral-800 rounded divide-y divide-neutral-800">
                             {results.map((bookmark) => (
@@ -188,7 +181,6 @@ export default function SearchPage() {
                                                 </span>
                                             </div>
 
-                                            {/* Tags */}
                                             {bookmark.tags.length > 0 && (
                                                 <div className="flex flex-wrap gap-1.5 mt-2">
                                                     {bookmark.tags.map((tag) => (
@@ -209,7 +201,6 @@ export default function SearchPage() {
                         </div>
                     )}
 
-                    {/* No Results */}
                     {!loading && results.length === 0 && (
                         <div className="py-16 text-center border border-dashed border-neutral-800 rounded">
                             <HiOutlineSearch className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
@@ -223,7 +214,6 @@ export default function SearchPage() {
                 </div>
             )}
 
-            {/* Initial State */}
             {!searched && (
                 <div className="py-16 sm:py-24 text-center border border-dashed border-neutral-800 rounded">
                     <HiOutlineSearch className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
